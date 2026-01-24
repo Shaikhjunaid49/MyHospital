@@ -1,4 +1,5 @@
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import API from "../../api/API";
 
 // Handles appointment payment flow
 const PaymentComponent = () => {
@@ -6,18 +7,11 @@ const PaymentComponent = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  // Get appointment ID from state or query params
   const appointmentId =
-    location.state?.appointmentId ||
-    searchParams.get("appointmentId");
+    location.state?.appointmentId || searchParams.get("appointmentId");
 
-  // Get payment amount safely
   const amount =
-    location.state?.amount ||
-    searchParams.get("amount") ||
-    500;
-
-  const auth = JSON.parse(localStorage.getItem("auth"));
+    location.state?.amount || searchParams.get("amount") || 500;
 
   // Invalid access protection
   if (!appointmentId) {
@@ -33,27 +27,8 @@ const PaymentComponent = () => {
   // Skip payment and mark appointment as paid
   const skipPayment = async () => {
     try {
-      const res = await fetch(
-        "http://localhost:8080/api/payments/skip",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${auth.token}`,
-          },
-          body: JSON.stringify({ appointmentId }),
-        }
-      );
-
-      const data = await res.json();
-      if (!res.ok) {
-        alert(data.message);
-        return;
-      }
-
+      await API.post("/payments/skip", { appointmentId });
       alert("Payment successful");
-
-      // Redirect user after payment
       navigate("/dashboard");
     } catch {
       alert("Payment server error");
@@ -72,28 +47,18 @@ const PaymentComponent = () => {
           Secure hospital payment
         </p>
 
-        {/* Payment summary */}
         <div className="border rounded-lg p-4 mb-6 bg-gray-50">
           <div className="flex justify-between mb-2">
-            <span className="text-gray-600">
-              Consultation Fee
-            </span>
-            <span className="font-semibold">
-              ₹{amount}
-            </span>
+            <span className="text-gray-600">Consultation Fee</span>
+            <span className="font-semibold">₹{amount}</span>
           </div>
 
           <div className="flex justify-between">
-            <span className="text-gray-600">
-              Payment Method
-            </span>
-            <span className="font-semibold">
-              UPI / QR
-            </span>
+            <span className="text-gray-600">Payment Method</span>
+            <span className="font-semibold">UPI / QR</span>
           </div>
         </div>
 
-        {/* Development note */}
         <div className="text-sm text-orange-600 bg-orange-50 p-3 rounded mb-5">
           Payment gateway is disabled in development mode.
         </div>
@@ -104,11 +69,6 @@ const PaymentComponent = () => {
         >
           Pay Securely
         </button>
-
-        <p className="text-xs text-center text-gray-400 mt-4">
-          Your payment is encrypted and secure
-        </p>
-
       </div>
     </div>
   );

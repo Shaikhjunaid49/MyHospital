@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { User, Stethoscope } from "lucide-react";
+import API from "../../api/API";
 
 // Signup component with OTP verification (User / Doctor)
 const SignupComponent = () => {
@@ -42,16 +43,7 @@ const SignupComponent = () => {
           };
 
     try {
-      const res = await fetch(
-        "http://localhost:8080/api/auth/signup/send-otp",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
-
-      if (!res.ok) throw new Error();
+      await API.post("/auth/signup/send-otp", payload);
       setStep(2);
     } catch {
       alert("Failed to send OTP");
@@ -66,19 +58,10 @@ const SignupComponent = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(
-        "http://localhost:8080/api/auth/signup/verify-otp",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: form.email,
-            otp: form.otp,
-          }),
-        }
-      );
-
-      if (!res.ok) throw new Error();
+      await API.post("/auth/signup/verify-otp", {
+        email: form.email,
+        otp: form.otp,
+      });
       setStep(3);
     } catch {
       alert("Invalid OTP");
@@ -93,19 +76,10 @@ const SignupComponent = () => {
     setLoading(true);
 
     try {
-      const res = await fetch(
-        "http://localhost:8080/api/auth/signup/set-password",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: form.email,
-            password: form.password,
-          }),
-        }
-      );
-
-      if (!res.ok) throw new Error();
+      await API.post("/auth/signup/set-password", {
+        email: form.email,
+        password: form.password,
+      });
       alert("Signup successful! Please login.");
     } catch {
       alert("Failed to set password");
@@ -120,15 +94,9 @@ const SignupComponent = () => {
 
         {/* Step indicator */}
         <div className="flex justify-between mb-6 text-sm font-medium">
-          <span className={step >= 1 ? "text-green-600" : "text-gray-400"}>
-            Details
-          </span>
-          <span className={step >= 2 ? "text-green-600" : "text-gray-400"}>
-            OTP
-          </span>
-          <span className={step >= 3 ? "text-green-600" : "text-gray-400"}>
-            Password
-          </span>
+          <span className={step >= 1 ? "text-green-600" : "text-gray-400"}>Details</span>
+          <span className={step >= 2 ? "text-green-600" : "text-gray-400"}>OTP</span>
+          <span className={step >= 3 ? "text-green-600" : "text-gray-400"}>Password</span>
         </div>
 
         {/* Role selection */}
@@ -136,12 +104,11 @@ const SignupComponent = () => {
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div
               onClick={() => setRole("user")}
-              className={`cursor-pointer border rounded-xl p-4 flex flex-col items-center
-                ${
-                  role === "user"
-                    ? "border-green-600 bg-green-50"
-                    : "hover:border-gray-400"
-                }`}
+              className={`cursor-pointer border rounded-xl p-4 flex flex-col items-center ${
+                role === "user"
+                  ? "border-green-600 bg-green-50"
+                  : "hover:border-gray-400"
+              }`}
             >
               <User className="w-8 h-8 text-green-600" />
               <p className="mt-2 font-semibold">User</p>
@@ -149,12 +116,11 @@ const SignupComponent = () => {
 
             <div
               onClick={() => setRole("doctor")}
-              className={`cursor-pointer border rounded-xl p-4 flex flex-col items-center
-                ${
-                  role === "doctor"
-                    ? "border-green-600 bg-green-50"
-                    : "hover:border-gray-400"
-                }`}
+              className={`cursor-pointer border rounded-xl p-4 flex flex-col items-center ${
+                role === "doctor"
+                  ? "border-green-600 bg-green-50"
+                  : "hover:border-gray-400"
+              }`}
             >
               <Stethoscope className="w-8 h-8 text-green-600" />
               <p className="mt-2 font-semibold">Doctor</p>
@@ -165,47 +131,27 @@ const SignupComponent = () => {
         {/* STEP 1 */}
         {step === 1 && (
           <form onSubmit={sendOtp} className="space-y-4">
-            <input
-              name="name"
-              placeholder="Full Name"
-              required
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-green-500"
-            />
+            <input name="name" placeholder="Full Name" required onChange={handleChange}
+              className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-green-500" />
 
-            <input
-              name="email"
-              type="email"
-              placeholder="Email Address"
-              required
+            <input name="email" type="email" placeholder="Email Address" required
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-green-500"
-            />
+              className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-green-500" />
 
             {role === "doctor" && (
               <>
-                <input
-                  name="specialization"
-                  placeholder="Specialization"
-                  required
+                <input name="specialization" placeholder="Specialization" required
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-green-500"
-                />
+                  className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-green-500" />
 
-                <input
-                  name="experience"
-                  type="number"
-                  placeholder="Experience (years)"
+                <input name="experience" type="number" placeholder="Experience (years)"
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-green-500"
-                />
+                  className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-green-500" />
               </>
             )}
 
-            <button
-              disabled={loading}
-              className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 disabled:opacity-50"
-            >
+            <button disabled={loading}
+              className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700">
               {loading ? "Sending OTP..." : "Send OTP"}
             </button>
           </form>
@@ -214,18 +160,11 @@ const SignupComponent = () => {
         {/* STEP 2 */}
         {step === 2 && (
           <form onSubmit={verifyOtp} className="space-y-4">
-            <input
-              name="otp"
-              placeholder="Enter OTP"
-              required
-              onChange={handleChange}
-              className="w-full px-4 py-3 text-center tracking-widest rounded-xl border focus:ring-2 focus:ring-green-500"
-            />
+            <input name="otp" placeholder="Enter OTP" required onChange={handleChange}
+              className="w-full px-4 py-3 text-center tracking-widest rounded-xl border focus:ring-2 focus:ring-green-500" />
 
-            <button
-              disabled={loading}
-              className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 disabled:opacity-50"
-            >
+            <button disabled={loading}
+              className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700">
               {loading ? "Verifying..." : "Verify OTP"}
             </button>
           </form>
@@ -234,19 +173,12 @@ const SignupComponent = () => {
         {/* STEP 3 */}
         {step === 3 && (
           <form onSubmit={setPassword} className="space-y-4">
-            <input
-              name="password"
-              type="password"
-              placeholder="Create Password"
-              required
+            <input name="password" type="password" placeholder="Create Password" required
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-green-500"
-            />
+              className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-green-500" />
 
-            <button
-              disabled={loading}
-              className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 disabled:opacity-50"
-            >
+            <button disabled={loading}
+              className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700">
               {loading ? "Saving..." : "Complete Signup"}
             </button>
           </form>

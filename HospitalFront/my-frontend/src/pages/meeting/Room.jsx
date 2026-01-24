@@ -2,35 +2,17 @@ import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../components/common/Nav";
 import Footer from "../../components/common/Footer";
 import Chat from "../../components/chat/Chat";
+import API from "../../api/API";
 
 const Room = () => {
   const { id } = useParams(); // appointmentId
   const navigate = useNavigate();
 
   const startVideoCall = async () => {
-    const auth = JSON.parse(localStorage.getItem("auth"));
-
     try {
-      // 1️⃣ Create / get video room from backend
-      const res = await fetch("http://localhost:8080/api/rooms", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${auth.token}`,
-        },
-        body: JSON.stringify({ appointmentId: id }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.message || "Cannot start video call");
-        return;
-      }
-
-      // 2️⃣ Navigate to video page
-      navigate(`/video/${data.room._id}`);
-    } catch (err) {
+      const res = await API.post("/rooms", { appointmentId: id });
+      navigate(`/video/${res.data.room._id}`);
+    } catch {
       alert("Server error while starting video call");
     }
   };
@@ -61,5 +43,3 @@ const Room = () => {
 };
 
 export default Room;
-
-// in this after seprate the video call feacture
