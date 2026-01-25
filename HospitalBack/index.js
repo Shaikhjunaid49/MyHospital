@@ -31,13 +31,11 @@ const PORT = process.env.PORT || 8080;
 // Enable CORS
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://your-vercel-app.vercel.app",
-    ],
+    origin: process.env.CORS_ALLOWED_ORIGINS.split(","),
     credentials: true,
   })
 );
+
 
 
 // Security headers

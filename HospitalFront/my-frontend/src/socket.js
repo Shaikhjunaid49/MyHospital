@@ -1,8 +1,6 @@
 import { io } from "socket.io-client";
 
-const auth = JSON.parse(localStorage.getItem("auth"));
-
-const socket = io("http://localhost:8080", {
+const socket = io(import.meta.env.VITE_API_URL.replace("/api", ""), {
   autoConnect: false,
   transports: ["websocket"],
   auth: {
@@ -11,5 +9,6 @@ const socket = io("http://localhost:8080", {
     role: auth?.user?.role,
   },
 });
+
 
 export default socket;
