@@ -1,15 +1,19 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Navbar() {
+  // mobile menu state
   const [open, setOpen] = useState(false);
+
   const navigate = useNavigate();
 
-  // Read auth from localStorage (same logic you use everywhere)
-  const auth = JSON.parse(localStorage.getItem("auth"));
+  // get auth and logout from context
+  const { auth, logout } = useAuth();
 
-  const logout = () => {
-    localStorage.removeItem("auth");
+  // logout user
+  const handleLogout = () => {
+    logout();
     navigate("/login");
   };
 
@@ -18,7 +22,7 @@ export default function Navbar() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-20 items-center justify-between">
 
-          {/* Logo */}
+          {/* logo */}
           <Link to="/" className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-50 border border-green-200">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -41,7 +45,7 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Desktop navigation */}
+          {/* desktop menu */}
           <nav className="hidden md:flex items-center gap-8">
             <Link to="/" className="text-gray-700 hover:text-green-600">
               Home
@@ -53,17 +57,17 @@ export default function Navbar() {
               Services
             </Link>
 
-            {/* Show only when logged in */}
-            {auth && (
+            {/* show only if logged in */}
+            {auth?.user && (
               <Link to="/dashboard" className="text-gray-700 hover:text-green-600">
                 Dashboard
               </Link>
             )}
           </nav>
 
-          {/* Right side actions */}
+          {/* right buttons */}
           <div className="flex items-center gap-3">
-            {!auth ? (
+            {!auth?.user ? (
               <>
                 <Link
                   to="/login"
@@ -87,7 +91,7 @@ export default function Navbar() {
                   Book Appointment
                 </Link>
                 <button
-                  onClick={logout}
+                  onClick={handleLogout}
                   className="hidden md:inline-block text-sm text-red-600"
                 >
                   Logout
@@ -95,15 +99,13 @@ export default function Navbar() {
               </>
             )}
 
-            {/* Mobile menu button */}
+            {/* mobile menu button */}
             <button
               onClick={() => setOpen(!open)}
               className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 bg-white md:hidden"
             >
               <svg
-                className={`h-5 w-5 transition-transform ${
-                  open ? "rotate-90" : ""
-                }`}
+                className={`h-5 w-5 transition-transform ${open ? "rotate-90" : ""}`}
                 viewBox="0 0 24 24"
                 fill="none"
               >
@@ -119,7 +121,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile menu */}
+        {/* mobile menu */}
         {open && (
           <div className="md:hidden mt-3 rounded-lg border bg-white p-4 shadow space-y-2">
             <Link to="/" onClick={() => setOpen(false)} className="block">
@@ -132,7 +134,7 @@ export default function Navbar() {
               Services
             </Link>
 
-            {!auth ? (
+            {!auth?.user ? (
               <>
                 <Link to="/login" onClick={() => setOpen(false)} className="block">
                   Login
@@ -158,7 +160,7 @@ export default function Navbar() {
                   Book Appointment
                 </Link>
                 <button
-                  onClick={logout}
+                  onClick={handleLogout}
                   className="block text-left text-red-600"
                 >
                   Logout
