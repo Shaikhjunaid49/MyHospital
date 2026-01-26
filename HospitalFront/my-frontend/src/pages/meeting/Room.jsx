@@ -1,43 +1,30 @@
 import { useParams, useNavigate } from "react-router-dom";
-import Navbar from "../../components/common/Nav";
-import Footer from "../../components/common/Footer";
-import Chat from "../../components/chat/Chat";
 import API from "../../api/axios";
+import Chat from "../../components/chat/Chat";
 
 const Room = () => {
-  const { id } = useParams(); // appointmentId
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const startVideoCall = async () => {
-    try {
-      const res = await API.post("/rooms", { appointmentId: id });
-      navigate(`/video/${res.data.room._id}`);
-    } catch {
-      alert("Server error while starting video call");
-    }
+    const auth = JSON.parse(localStorage.getItem("auth"));
+
+    const res = await API.post(
+      "/rooms",
+      { appointmentId: id },
+      {
+        headers: { Authorization: `Bearer ${auth.token}` },
+      }
+    );
+
+    navigate(`/video/${res.data.room._id}`);
   };
 
   return (
     <>
-      <Navbar />
-
-      <div className="min-h-[calc(100vh-120px)] flex flex-col">
-        
-        {/* 🔥 VIDEO CALL BAR */}
-        <div className="p-4 bg-white border-b flex justify-end">
-          <button
-            onClick={startVideoCall}
-            className="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700"
-          >
-            🎥 Start Video Call
-          </button>
-        </div>
-
-        {/* CHAT */}
-        <Chat appointmentId={id} />
-      </div>
-
-      <Footer />
+      {/* Navbar unchanged */}
+      <Chat appointmentId={id} />
+      {/* Footer unchanged */}
     </>
   );
 };
