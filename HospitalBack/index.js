@@ -27,9 +27,9 @@ import paymentRoutes from "./src/routes/payment.routes.js";
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-/* ========== GLOBAL MIDDLEWARES ========== */
+/* ========= GLOBAL MIDDLEWARES ========= */
 
-// enable CORS (FIXED)
+// enable CORS (FINAL FIX)
 app.use(cors(corsOptions));
 
 // security headers
@@ -42,24 +42,26 @@ app.use(compression());
 if (process.env.NODE_ENV === "production") {
   app.use(
     morgan("combined", {
-      stream: { write: msg => logger.info(msg.trim()) },
+      stream: {
+        write: (msg) => logger.info(msg.trim()),
+      },
     })
   );
 } else {
   app.use(morgan("dev"));
 }
 
-// rate limit
+// rate limiting
 app.use(limiter);
 
-// parse json
+// parse JSON body
 app.use(express.json());
 
-/* ========== DATABASE ========== */
+/* ========= DATABASE ========= */
 
 connectDB();
 
-/* ========== ROUTES ========== */
+/* ========= ROUTES ========= */
 
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
@@ -69,17 +71,17 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/payments", paymentRoutes);
 
-/* ========== HEALTH CHECK ========== */
+/* ========= HEALTH CHECK ========= */
 
 app.get("/", (req, res) => {
   res.json({ message: "Server running successfully" });
 });
 
-/* ========== ERROR HANDLER ========== */
+/* ========= ERROR HANDLER ========= */
 
 app.use(errorHandler);
 
-/* ========== SERVER & SOCKET ========== */
+/* ========= SERVER & SOCKET ========= */
 
 const httpServer = http.createServer(app);
 initSocket(httpServer);

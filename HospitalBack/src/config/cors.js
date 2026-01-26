@@ -1,18 +1,20 @@
-const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || "")
-  .split(",")
-  .map(s => s.trim())
-  .filter(Boolean);
-
 export const corsOptions = {
   origin: (origin, callback) => {
-    // Allow Postman / mobile apps
+    // allow Postman / server requests
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.includes(origin)) {
+    // allow localhost (dev)
+    if (origin.startsWith("http://localhost")) {
       return callback(null, true);
     }
 
-    return callback(null, false);
+    // allow all Netlify domains (preview + prod)
+    if (origin.endsWith(".netlify.app")) {
+      return callback(null, true);
+    }
+
+    // block everything else
+    return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
   optionsSuccessStatus: 200,
