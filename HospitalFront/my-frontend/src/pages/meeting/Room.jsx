@@ -13,7 +13,7 @@ const Room = () => {
 
     try {
       const res = await API.post(
-        "/api/rooms",
+        "/rooms",
         { appointmentId: id },
         {
           headers: {

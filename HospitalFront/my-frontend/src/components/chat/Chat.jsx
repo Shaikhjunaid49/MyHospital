@@ -45,7 +45,7 @@ const Chat = ({ appointmentId }) => {
 
   const joinVideoCall = async () => {
     const res = await API.post(
-      "/api/rooms",
+      "/rooms",
       { appointmentId },
       { headers: { Authorization: `Bearer ${auth.token}` } }
     );

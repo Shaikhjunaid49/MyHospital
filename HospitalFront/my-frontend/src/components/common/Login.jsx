@@ -15,7 +15,7 @@ const LoginComponent = () => {
     setLoading(true);
 
     try {
-      const res = await API.post("/api/auth/login", form);
+      const res = await API.post("/auth/login", form);
       login(res.data.token, res.data.user);
 
       if (res.data.user.role === "admin") navigate("/admin/dashboard");

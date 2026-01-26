@@ -55,7 +55,7 @@ const AppointmentComponent = () => {
 
     try {
       const res = await API.post(
-        "/api/appointments",
+        "/appointments",
         {
           doctorId: form.doctorId,
           serviceId: form.serviceId,

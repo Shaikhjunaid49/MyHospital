@@ -17,7 +17,7 @@ const UserDashboardComponent = () => {
     }
 
     try {
-      const res = await API.get("/api/appointments", {
+      const res = await API.get("/appointments", {
         headers: {
           Authorization: `Bearer ${auth.token}`,
         },
@@ -40,7 +40,7 @@ const UserDashboardComponent = () => {
 
     const auth = JSON.parse(localStorage.getItem("auth"));
 
-    await API.delete(`/api/appointments/${id}`, {
+    await API.delete(`/appointments/${id}`, {
       headers: {
         Authorization: `Bearer ${auth.token}`,
       },

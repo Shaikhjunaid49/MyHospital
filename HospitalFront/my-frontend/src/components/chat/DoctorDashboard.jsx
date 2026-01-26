@@ -18,7 +18,7 @@ const DoctorDashboardComponent = () => {
     }
 
     try {
-      const res = await API.get("/api/appointments/doctor", {
+      const res = await API.get("/appointments/doctor", {
         headers: {
           Authorization: `Bearer ${auth.token}`,
         },
@@ -42,7 +42,7 @@ const DoctorDashboardComponent = () => {
     const auth = JSON.parse(localStorage.getItem("auth"));
 
     await API.patch(
-      `/api/appointments/${id}/status`,
+      `/appointments/${id}/status`,
       { status },
       {
         headers: {
@@ -60,7 +60,7 @@ const DoctorDashboardComponent = () => {
 
     const auth = JSON.parse(localStorage.getItem("auth"));
 
-    await API.delete(`/api/appointments/${id}`, {
+    await API.delete(`/appointments/${id}`, {
       headers: {
         Authorization: `Bearer ${auth.token}`,
       },

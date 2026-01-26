@@ -26,7 +26,7 @@ const SignupComponent = () => {
     setLoading(true);
 
     try {
-      await API.post("/api/auth/signup/send-otp", {
+      await API.post("/auth/signup/send-otp", {
         name: form.name,
         email: form.email,
         role,
@@ -47,7 +47,7 @@ const SignupComponent = () => {
     setLoading(true);
 
     try {
-      await API.post("/api/auth/signup/verify-otp", {
+      await API.post("/auth/signup/verify-otp", {
         email: form.email,
         otp: form.otp,
       });
@@ -65,7 +65,7 @@ const SignupComponent = () => {
     setLoading(true);
 
     try {
-      await API.post("/api/auth/signup/set-password", {
+      await API.post("/auth/signup/set-password", {
         email: form.email,
         password: form.password,
       });

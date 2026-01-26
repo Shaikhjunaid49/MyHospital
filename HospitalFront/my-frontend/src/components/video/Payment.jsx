@@ -31,7 +31,7 @@ const PaymentComponent = () => {
   const skipPayment = async () => {
     try {
       await API.post(
-        "/api/payments/skip",
+        "/payments/skip",
         { appointmentId },
         {
           headers: {
