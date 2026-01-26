@@ -11,10 +11,11 @@ import morgan from "morgan";
 import connectDB from "./src/config/db.js";
 import { initSocket } from "./socket/socket.js";
 import { limiter } from "./src/middlewares/rateLimiter.js";
-import {errorHandler} from "./src/middlewares/errorHandler.js"
+import { errorHandler } from "./src/middlewares/errorHandler.js";
 import logger from "./src/config/logger.js";
+import { corsOptions } from "./src/config/cors.js";
 
-// Routes
+// routes
 import authRoutes from "./src/routes/auth.routes.js";
 import adminRoutes from "./src/routes/admin.routes.js";
 import appointmentRoutes from "./src/routes/appointment.routes.js";
@@ -26,48 +27,39 @@ import paymentRoutes from "./src/routes/payment.routes.js";
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-/* ================= GLOBAL MIDDLEWARES ================= */
+/* ========== GLOBAL MIDDLEWARES ========== */
 
-// Enable CORS
-app.use(
-  cors({
-    origin: process.env.CORS_ALLOWED_ORIGINS.split(","),
-    credentials: true,
-  })
-);
+// enable CORS (FIXED)
+app.use(cors(corsOptions));
 
-
-
-// Security headers
+// security headers
 app.use(helmet());
 
-// Compress responses
+// compress responses
 app.use(compression());
 
-// Logging
+// logging
 if (process.env.NODE_ENV === "production") {
   app.use(
     morgan("combined", {
-      stream: {
-        write: (msg) => logger.info(msg.trim()),
-      },
+      stream: { write: msg => logger.info(msg.trim()) },
     })
   );
 } else {
   app.use(morgan("dev"));
 }
 
-// Rate limiting
+// rate limit
 app.use(limiter);
 
-// Parse JSON body
+// parse json
 app.use(express.json());
 
-/* ================= DATABASE ================= */
+/* ========== DATABASE ========== */
 
 connectDB();
 
-/* ================= ROUTES ================= */
+/* ========== ROUTES ========== */
 
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
@@ -77,41 +69,21 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/payments", paymentRoutes);
 
-/* ================= HEALTH CHECK ================= */
+/* ========== HEALTH CHECK ========== */
 
 app.get("/", (req, res) => {
   res.json({ message: "Server running successfully" });
 });
 
-/* ================= ERROR HANDLER ================= */
+/* ========== ERROR HANDLER ========== */
 
 app.use(errorHandler);
 
-/* ================= SERVER & SOCKET ================= */
+/* ========== SERVER & SOCKET ========== */
 
 const httpServer = http.createServer(app);
-
-// Initialize Socket.IO
 initSocket(httpServer);
 
-// Start server
 httpServer.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
-
-// now in services section add service and then make it more beautifull 
-// and this error and two repositry
-
-
-// add forget password functionality as well 
-// and check lohout work or not
-
-// 👉 NEXT MOVE (ONE WORD)
-
-// LOCK → restrict chat/video to paid appointments
-
-// QR → real Razorpay QR payment
-
-// DEPLOY → take project live
-
-// Bro, this is FINAL-POLISH LEVEL WORK 👏💪
