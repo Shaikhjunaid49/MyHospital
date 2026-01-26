@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API from "../../api/axios";
 
 // User dashboard
 // Shows user's booked appointments
@@ -8,7 +9,6 @@ const UserDashboardComponent = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch user appointments
   const fetchAppointments = async () => {
     const auth = JSON.parse(localStorage.getItem("auth"));
     if (!auth?.token) {
@@ -16,40 +16,35 @@ const UserDashboardComponent = () => {
       return;
     }
 
-    const res = await fetch(
-      "http://localhost:8080/api/appointments",
-      {
+    try {
+      const res = await API.get("/api/appointments", {
         headers: {
           Authorization: `Bearer ${auth.token}`,
         },
-      }
-    );
+      });
 
-    const data = await res.json();
-    setAppointments(Array.isArray(data) ? data : []);
-    setLoading(false);
+      setAppointments(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      alert("Failed to load appointments");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Load appointments on page load
   useEffect(() => {
     fetchAppointments();
   }, []);
 
-  // Delete appointment
   const deleteAppointment = async (id) => {
     if (!window.confirm("Delete this appointment?")) return;
 
     const auth = JSON.parse(localStorage.getItem("auth"));
 
-    await fetch(
-      `http://localhost:8080/api/appointments/${id}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${auth.token}`,
-        },
-      }
-    );
+    await API.delete(`/api/appointments/${id}`, {
+      headers: {
+        Authorization: `Bearer ${auth.token}`,
+      },
+    });
 
     fetchAppointments();
   };

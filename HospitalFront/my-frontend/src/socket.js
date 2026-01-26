@@ -1,5 +1,6 @@
 import { io } from "socket.io-client";
 
+// create socket using auth
 export const createSocket = (auth) => {
   if (!auth || !auth.user) return null;
 

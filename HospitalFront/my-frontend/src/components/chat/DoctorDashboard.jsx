@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API from "../../api/axios";
 
 // Doctor dashboard
 // Shows all appointments assigned to the doctor
@@ -16,18 +17,19 @@ const DoctorDashboardComponent = () => {
       return;
     }
 
-    const res = await fetch(
-      "http://localhost:8080/api/appointments/doctor",
-      {
+    try {
+      const res = await API.get("/api/appointments/doctor", {
         headers: {
           Authorization: `Bearer ${auth.token}`,
         },
-      }
-    );
+      });
 
-    const data = await res.json();
-    setAppointments(Array.isArray(data) ? data : []);
-    setLoading(false);
+      setAppointments(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      alert("Failed to load appointments");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Load appointments on page load
@@ -39,37 +41,30 @@ const DoctorDashboardComponent = () => {
   const updateStatus = async (id, status) => {
     const auth = JSON.parse(localStorage.getItem("auth"));
 
-    await fetch(
-      `http://localhost:8080/api/appointments/${id}/status`,
+    await API.patch(
+      `/api/appointments/${id}/status`,
+      { status },
       {
-        method: "PATCH",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${auth.token}`,
         },
-        body: JSON.stringify({ status }),
       }
     );
 
-    // Refresh list after update
     fetchDoctorAppointments();
   };
 
-  // Delete appointment after completion or cancellation
+  // Delete appointment
   const deleteAppointment = async (id) => {
     if (!window.confirm("Delete this appointment?")) return;
 
     const auth = JSON.parse(localStorage.getItem("auth"));
 
-    await fetch(
-      `http://localhost:8080/api/appointments/${id}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${auth.token}`,
-        },
-      }
-    );
+    await API.delete(`/api/appointments/${id}`, {
+      headers: {
+        Authorization: `Bearer ${auth.token}`,
+      },
+    });
 
     fetchDoctorAppointments();
   };
@@ -92,7 +87,6 @@ const DoctorDashboardComponent = () => {
                 key={a._id}
                 className="bg-white border rounded-2xl p-6 shadow-sm flex justify-between items-center"
               >
-                {/* Appointment details */}
                 <div>
                   <p className="font-semibold">
                     {a.patientId?.name}
@@ -105,7 +99,6 @@ const DoctorDashboardComponent = () => {
                   </p>
                 </div>
 
-                {/* Action buttons */}
                 <div className="flex gap-2 items-center">
                   <span className="capitalize font-semibold">
                     {a.status}

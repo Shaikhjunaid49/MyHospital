@@ -1,9 +1,8 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import socket from "../../socket";
+import { createSocket } from "../../socket";
+import API from "../../api/axios";
 
-// Real-time chat component for appointments
 const Chat = ({ appointmentId }) => {
   const auth = JSON.parse(localStorage.getItem("auth"));
   const userId = auth?.user?._id;
@@ -12,71 +11,53 @@ const Chat = ({ appointmentId }) => {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
 
-  // Join socket room and listen for messages
   useEffect(() => {
     if (!appointmentId || !userId) return;
 
-    if (!socket.connected) socket.connect();
+    const socket = createSocket(auth);
+    if (!socket) return;
 
     socket.emit("joinRoom", { appointmentId });
 
-    socket.on("recentMessages", (msgs) =>
-      setMessages(msgs || [])
-    );
-
+    socket.on("recentMessages", (msgs) => setMessages(msgs || []));
     socket.on("newMessage", (msg) => {
       setMessages((prev) =>
-        prev.some((m) => m._id === msg._id)
-          ? prev
-          : [...prev, msg]
+        prev.some((m) => m._id === msg._id) ? prev : [...prev, msg]
       );
     });
 
-    return () => {
-      socket.off("recentMessages");
-      socket.off("newMessage");
-    };
+    return () => socket.disconnect();
   }, [appointmentId, userId]);
 
-  // Send chat message
   const sendMessage = () => {
     if (!text.trim()) return;
 
+    const socket = createSocket(auth);
     socket.emit("sendMessage", {
       appointmentId,
       senderId: userId,
-      senderRole:
-        auth.user.role === "doctor" ? "doctor" : "patient",
+      senderRole: auth.user.role === "doctor" ? "doctor" : "patient",
       text,
     });
 
     setText("");
   };
 
-  // Create or join video room
   const joinVideoCall = async () => {
-    const res = await fetch("http://localhost:8080/api/rooms", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${auth.token}`,
-      },
-      body: JSON.stringify({ appointmentId }),
-    });
+    const res = await API.post(
+      "/api/rooms",
+      { appointmentId },
+      { headers: { Authorization: `Bearer ${auth.token}` } }
+    );
 
-    const data = await res.json();
-    if (res.ok) navigate(`/video/${data.room._id}`);
-    else alert(data.message);
+    navigate(`/video/${res.data.room._id}`);
   };
 
   return (
     <div className="flex flex-col h-full bg-gray-100">
-      {/* Messages */}
       <div className="flex-1 p-4 overflow-y-auto space-y-2">
         {messages.map((m) => {
-          const isMe =
-            String(m.senderId) === String(userId);
-
+          const isMe = String(m.senderId) === String(userId);
           return (
             <div
               key={m._id}
@@ -92,7 +73,6 @@ const Chat = ({ appointmentId }) => {
         })}
       </div>
 
-      {/* Message input */}
       <div className="p-3 bg-white border-t flex gap-2">
         <button
           onClick={joinVideoCall}
@@ -106,9 +86,7 @@ const Chat = ({ appointmentId }) => {
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Type a message"
-          onKeyDown={(e) =>
-            e.key === "Enter" && sendMessage()
-          }
+          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
         />
 
         <button
