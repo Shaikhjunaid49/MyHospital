@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import API from "../../api/API";
+import API from "../../api/axios";
 
 // Login page
 const LoginComponent = () => {

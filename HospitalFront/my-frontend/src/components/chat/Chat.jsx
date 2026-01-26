@@ -1,26 +1,34 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import socket from "../../socket";
-import API from "../../api/API";
+import { createSocket } from "../../socket";
+import API from "../../api/axios";
 
 // Real-time chat component for appointments
 const Chat = ({ appointmentId }) => {
+  const navigate = useNavigate();
+
   const auth = JSON.parse(localStorage.getItem("auth"));
   const userId = auth?.user?._id;
-  const navigate = useNavigate();
+
+  const socketRef = useRef(null);
 
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
 
   // Join socket room and listen for messages
   useEffect(() => {
-    if (!appointmentId || !userId) return;
+    if (!appointmentId || !userId || !auth) return;
 
-    if (!socket.connected) socket.connect();
+    // create socket with auth
+    const socket = createSocket(auth);
+    socketRef.current = socket;
 
     socket.emit("joinRoom", { appointmentId });
 
-    socket.on("recentMessages", (msgs) => setMessages(msgs || []));
+    socket.on("recentMessages", (msgs) => {
+      setMessages(msgs || []);
+    });
+
     socket.on("newMessage", (msg) => {
       setMessages((prev) =>
         prev.some((m) => m._id === msg._id) ? prev : [...prev, msg]
@@ -30,6 +38,7 @@ const Chat = ({ appointmentId }) => {
     return () => {
       socket.off("recentMessages");
       socket.off("newMessage");
+      socket.disconnect();
     };
   }, [appointmentId, userId]);
 
@@ -37,10 +46,8 @@ const Chat = ({ appointmentId }) => {
   const sendMessage = () => {
     if (!text.trim()) return;
 
-    socket.emit("sendMessage", {
+    socketRef.current.emit("sendMessage", {
       appointmentId,
-      senderId: userId,
-      senderRole: auth.user.role === "doctor" ? "doctor" : "patient",
       text,
     });
 

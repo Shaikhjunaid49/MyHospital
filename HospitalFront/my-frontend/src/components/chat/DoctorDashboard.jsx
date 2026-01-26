@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../../api/API";
+import API from "../../api/axios";
 
 // Doctor dashboard
 // Shows all appointments assigned to the doctor

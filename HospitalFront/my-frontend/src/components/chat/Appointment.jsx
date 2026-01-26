@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../../api/API";
+import API from "../../api/axios";
 
 // Handles appointment booking flow for users
 const AppointmentComponent = () => {

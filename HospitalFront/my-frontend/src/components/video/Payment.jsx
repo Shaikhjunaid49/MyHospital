@@ -1,5 +1,5 @@
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import API from "../../api/API";
+import API from "../../api/axios";
 
 // Handles appointment payment flow
 const PaymentComponent = () => {

@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../components/common/Nav";
 import Footer from "../../components/common/Footer";
 import Chat from "../../components/chat/Chat";
-import API from "../../api/API";
+import API from "../../api/axios";
 
 const Room = () => {
   const { id } = useParams(); // appointmentId

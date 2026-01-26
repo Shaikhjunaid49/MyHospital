@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../../api/API";
+import API from "../../api/axios";
 
 // User dashboard
 // Shows user's booked appointments

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { User, Stethoscope } from "lucide-react";
-import API from "../../api/API";
+import API from "../../api/axios";
 
 // Signup component with OTP verification (User / Doctor)
 const SignupComponent = () => {
