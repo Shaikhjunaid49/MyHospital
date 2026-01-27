@@ -1,14 +1,17 @@
 import { io } from "socket.io-client";
 
-// create socket using auth
 export const createSocket = (auth) => {
   if (!auth || !auth.user) return null;
 
-  const socket = io(import.meta.env.VITE_API_URL, {
+  const SOCKET_URL = import.meta.env.VITE_API_URL.replace("/api", "");
+
+  const socket = io(SOCKET_URL, {
     auth: {
       userId: auth.user._id,
       role: auth.user.role,
     },
+    transports: ["websocket"],
+    withCredentials: true,
   });
 
   return socket;

@@ -8,43 +8,48 @@ const Chat = ({ appointmentId }) => {
   const userId = auth?.user?._id;
   const navigate = useNavigate();
 
-  const socketRef = useRef(null); // ✅ keep single socket
+  const socketRef = useRef(null);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
 
   useEffect(() => {
     if (!appointmentId || !userId) return;
+    if (socketRef.current) return; // ⛔ prevent reconnect loop
 
-    // create socket ONCE
-    socketRef.current = createSocket(auth);
-    if (!socketRef.current) return;
+    const socket = createSocket(auth);
+    if (!socket) return;
 
-    const socket = socketRef.current;
+    socketRef.current = socket;
 
     socket.emit("joinRoom", { appointmentId });
 
     socket.on("recentMessages", (msgs) => {
+      console.log("📩 recentMessages:", msgs);
       setMessages(msgs || []);
     });
 
     socket.on("newMessage", (msg) => {
+      console.log("📨 newMessage:", msg);
       setMessages((prev) =>
         prev.some((m) => m._id === msg._id) ? prev : [...prev, msg]
       );
     });
 
+    socket.on("connect_error", (err) => {
+      console.error("❌ Socket error:", err.message);
+    });
+
     return () => {
-      socket.disconnect(); // cleanup
+      socket.off("recentMessages");
+      socket.off("newMessage");
     };
   }, [appointmentId, userId]);
 
   const sendMessage = () => {
-    if (!text.trim()) return;
+    if (!text.trim() || !socketRef.current) return;
 
     socketRef.current.emit("sendMessage", {
       appointmentId,
-      senderId: userId,
-      senderRole: auth.user.role === "doctor" ? "doctor" : "patient",
       text,
     });
 
@@ -55,7 +60,11 @@ const Chat = ({ appointmentId }) => {
     const res = await API.post(
       "/rooms",
       { appointmentId },
-      { headers: { Authorization: `Bearer ${auth.token}` } }
+      {
+        headers: {
+          Authorization: `Bearer ${auth.token}`,
+        },
+      }
     );
 
     navigate(`/video/${res.data.room._id}`);
@@ -63,7 +72,7 @@ const Chat = ({ appointmentId }) => {
 
   return (
     <div className="flex flex-col h-full bg-gray-100">
-      {/* messages */}
+      {/* Messages */}
       <div className="flex-1 p-4 overflow-y-auto space-y-2">
         {messages.map((m) => {
           const isMe = String(m.senderId) === String(userId);
@@ -82,7 +91,7 @@ const Chat = ({ appointmentId }) => {
         })}
       </div>
 
-      {/* input */}
+      {/* Input */}
       <div className="p-3 bg-white border-t flex gap-2">
         <button
           onClick={joinVideoCall}
