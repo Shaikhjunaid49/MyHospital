@@ -13,8 +13,8 @@ export default function Navbar() {
 
   // logout user
   const handleLogout = () => {
-    logout();
-    navigate("/login");
+    logout(); // clears localStorage and state
+    navigate("/login"); // redirect to login
   };
 
   return (

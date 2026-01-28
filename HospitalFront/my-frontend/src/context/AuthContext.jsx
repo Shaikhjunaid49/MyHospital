@@ -19,13 +19,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Clear auth data on logout
-  const logOut = () => {
+  const logout = () => {
     localStorage.removeItem("auth");
     setAuth(null);
   };
 
   return (
-    <AuthContext.Provider value={{ auth, login, logOut }}>
+    <AuthContext.Provider value={{ auth, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -36,9 +36,7 @@ export const useAuth = () => {
   const context = useContext(AuthContext);
 
   if (!context) {
-    throw new Error(
-      "useAuth must be used inside AuthProvider"
-    );
+    throw new Error("useAuth must be used inside AuthProvider");
   }
 
   return context;

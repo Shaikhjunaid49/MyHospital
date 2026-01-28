@@ -15,10 +15,19 @@ const ServicesListComponent = () => {
     try {
       const { data } = await getServices();
       setServices(data.services || []);
-    } catch (err) {
+    } catch {
       alert("Failed to load services");
     }
   };
+
+  // random hospital offers
+  const offers = [
+    "Free OPD Consultation on Mondays",
+    "20% off on Dental Checkup",
+    "Free Blood Pressure Test",
+    "Eye Checkup Package @ ₹399",
+    "Full Body Checkup @ ₹999",
+  ];
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -26,6 +35,7 @@ const ServicesListComponent = () => {
         Available Services
       </h2>
 
+      {/* services list */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {services.map((s) => (
           <div
@@ -45,13 +55,33 @@ const ServicesListComponent = () => {
             </p>
 
             <button
-              onClick={() => navigate(`/appointment?serviceId=${s._id}`)}
+              onClick={() =>
+                navigate(`/appointment?serviceId=${s._id}`)
+              }
               className="mt-4 w-full bg-green-600 text-white py-2 rounded"
             >
               Book Appointment
             </button>
           </div>
         ))}
+      </div>
+
+      {/* hospital offers */}
+      <div className="mt-12">
+        <h3 className="text-xl font-bold mb-4 text-green-700">
+          Hospital Offers
+        </h3>
+
+        <ul className="grid md:grid-cols-2 gap-4">
+          {offers.map((offer, index) => (
+            <li
+              key={index}
+              className="bg-green-50 border border-green-200 p-4 rounded-lg"
+            >
+              {offer}
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );

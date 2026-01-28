@@ -1,6 +1,6 @@
 import { FaTooth, FaHeartbeat, FaBrain, FaXRay } from "react-icons/fa";
 
-// Homepage services showcase (static UI)
+// Homepage services showcase
 const ServicesSectionComponent = () => {
   return (
     <section id="services" className="py-20 bg-[#f9fdf9] px-6 md:px-10">

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import mainHero from "../../assets/doctor/mainHero.png";
 
 // Hero section of landing page
 export default function Hero() {
@@ -27,7 +28,7 @@ export default function Hero() {
         {/* Hero image */}
         <div className="flex justify-center">
           <img
-            src="/src/assets/doctor/mainHero.png"
+            src={mainHero}
             alt="Medical Illustration"
             className="w-full max-w-md max-h-[320px] object-contain"
           />
