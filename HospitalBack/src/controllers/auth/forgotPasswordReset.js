@@ -1,5 +1,5 @@
 import User from "../../models/User.js";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import { AppError } from "../../utils/AppError.js";
 
 // Reset password
