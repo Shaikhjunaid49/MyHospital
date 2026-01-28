@@ -10,7 +10,14 @@ export const sendEmail = async ({ to, subject, html }) => {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS, // Gmail app password
       },
+      // Required for cloud platforms like Render
+      tls: {
+        rejectUnauthorized: false,
+      },
     });
+
+    // Verify transporter connection
+    await transporter.verify();
 
     // Send email
     await transporter.sendMail({
@@ -20,7 +27,8 @@ export const sendEmail = async ({ to, subject, html }) => {
       html,
     });
   } catch (error) {
-    // Forward error to be handled by caller
+    // Log exact email error
+    console.error("SEND EMAIL ERROR 👉", error);
     throw error;
   }
 };
