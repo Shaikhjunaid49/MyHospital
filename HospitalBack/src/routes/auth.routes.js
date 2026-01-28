@@ -5,6 +5,10 @@ import { verifySignupOtp } from "../controllers/auth/verifySignupOtp.js";
 import { setPassword } from "../controllers/auth/setPassword.js";
 import { login } from "../controllers/auth/login.js";
 
+import { forgotPasswordSendOtp } from "../controllers/auth/forgotPasswordSendOtp.js";
+import { forgotPasswordVerifyOtp } from "../controllers/auth/forgotPasswordVerifyOtp.js";
+import { forgotPasswordReset } from "../controllers/auth/forgotPasswordReset.js";
+
 import { auth } from "../middlewares/auth.js";
 import User from "../models/User.js";
 
@@ -23,6 +27,11 @@ router.post("/signup/set-password", setPassword);
 
 // Login
 router.post("/login", login);
+
+// Forgot password
+router.post("/forgot-password/send-otp", forgotPasswordSendOtp);
+router.post("/forgot-password/verify-otp", forgotPasswordVerifyOtp);
+router.post("/forgot-password/reset", forgotPasswordReset);
 
 // Get logged-in user profile
 router.get("/me", auth, async (req, res) => {
