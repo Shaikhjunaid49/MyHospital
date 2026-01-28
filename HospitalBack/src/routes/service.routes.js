@@ -14,8 +14,8 @@ const router = express.Router();
 /* ================= SERVICES ================= */
 
 router.post("/", auth, createService);
-router.get("/", auth, getAllServices);
-router.get("/:id", auth, getServiceById);
+router.get("/", getAllServices);
+router.get("/:id", getServiceById);
 router.put("/:id", auth, updateService);
 router.delete("/:id", auth, deleteService);
 
