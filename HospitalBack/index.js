@@ -29,7 +29,7 @@ const PORT = process.env.PORT || 8080;
 
 /* ========= GLOBAL MIDDLEWARES ========= */
 
-// enable CORS (FINAL FIX)
+// enable CORS
 app.use(cors(corsOptions));
 
 // security headers
@@ -51,7 +51,9 @@ if (process.env.NODE_ENV === "production") {
   app.use(morgan("dev"));
 }
 
-app.set("trust proxy", 1);
+// trust proxy (REQUIRED FOR RENDER)
+app.set("trust proxy", process.env.TRUST_PROXY === "true");
+
 // rate limiting
 app.use(limiter);
 
