@@ -52,7 +52,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 // trust proxy for Render
-app.set("trust proxy", 1);
+app.set("trust proxy", true);
 
 // rate limiting
 app.use(limiter);
