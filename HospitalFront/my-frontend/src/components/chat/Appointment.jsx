@@ -45,44 +45,50 @@ const AppointmentComponent = () => {
   };
 
   const bookAppointment = async () => {
-    if (!form.date || !form.doctorId || !form.timeSlot) {
-      alert("Please fill all fields");
-      return;
-    }
-
-    const { start, end } = buildStartEnd(form.date, form.timeSlot);
-    const auth = JSON.parse(localStorage.getItem("auth"));
-
-    try {
-      const res = await API.post(
-        "/appointments",
-        {
-          doctorId: form.doctorId,
-          serviceId: form.serviceId,
-          start,
-          end,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${auth?.token}`,
-          },
-        }
-      );
-
-      const appointmentId = res.data.appointment._id;
-      const amount = selectedService.price;
-
-      navigate(`/payment?appointmentId=${appointmentId}&amount=${amount}`, {
-        state: { appointmentId, amount },
-      });
-    } catch {
-      alert("Server error");
-    }
-  };
-
-  if (loading) {
-    return <p className="text-center mt-10 text-gray-600">Loading...</p>;
+  if (!form.date || !form.doctorId || !form.timeSlot) {
+    alert("Please fill all fields");
+    return;
   }
+
+  // get auth from localStorage
+  const auth = JSON.parse(localStorage.getItem("auth"));
+
+  // user must be logged in
+  if (!auth || !auth.token) {
+    alert("Please login first");
+    navigate("/login");
+    return;
+  }
+
+  const { start, end } = buildStartEnd(form.date, form.timeSlot);
+
+  try {
+    const res = await API.post(
+      "/appointments",
+      {
+        doctorId: form.doctorId,
+        serviceId: form.serviceId,
+        start,
+        end,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${auth.token}`,
+        },
+      }
+    );
+
+    const appointmentId = res.data.appointment._id;
+    const amount = selectedService.price;
+
+    navigate(`/payment?appointmentId=${appointmentId}&amount=${amount}`, {
+      state: { appointmentId, amount },
+    });
+  } catch (error) {
+    console.error(error.response?.data);
+    alert(error.response?.data?.message || "Appointment failed");
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
