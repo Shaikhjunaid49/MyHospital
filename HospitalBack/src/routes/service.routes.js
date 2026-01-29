@@ -13,7 +13,7 @@ const router = express.Router();
 
 /* ================= SERVICES ================= */
 
-router.post("/", auth, createService);
+router.post("/",  createService);
 router.get("/", getAllServices);
 router.get("/:id", getServiceById);
 router.put("/:id", auth, updateService);
