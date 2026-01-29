@@ -7,6 +7,8 @@ export const limiter = rateLimit({
   max: parseInt(process.env.RATE_LIMIT_MAX || "100"),
   standardHeaders: true,
   legacyHeaders: false,
+  trustProxy: false,
+
   message: {
     status: "fail",
     message: "Too many requests. Please try again later.",
