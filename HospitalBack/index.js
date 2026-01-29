@@ -51,8 +51,9 @@ if (process.env.NODE_ENV === "production") {
   app.use(morgan("dev"));
 }
 
-// trust proxy for Render
-app.set("trust proxy", true);
+// trust proxy 
+app.set("trust proxy", 1);
+
 
 // rate limiting
 app.use(limiter);
