@@ -8,9 +8,12 @@ export const sendEmail = async ({ to, subject, html }) => {
       port: 587,
       secure: false,
       auth: {
-        user: process.env.EMAIL_USER, // apikey
-        pass: process.env.EMAIL_PASS, // SMTP key
+        user: process.env.EMAIL_USER, 
+        pass: process.env.EMAIL_PASS, // Brevo SMTP key
       },
+      connectionTimeout: 20000,
+      greetingTimeout: 20000,
+      socketTimeout: 20000,
     });
 
     await transporter.sendMail({
@@ -20,7 +23,7 @@ export const sendEmail = async ({ to, subject, html }) => {
       html,
     });
   } catch (error) {
-    console.error("SEND EMAIL ERROR 👉", error);
+    console.error("SEND EMAIL ERROR ", error);
     throw error;
   }
 };
