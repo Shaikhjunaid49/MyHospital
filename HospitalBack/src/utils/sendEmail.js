@@ -5,15 +5,15 @@ export const sendEmail = async ({ to, subject, html }) => {
   try {
     const apiInstance = new Brevo.TransactionalEmailsApi();
 
-    // Attach API key
+    // Set API key explicitly
     apiInstance.setApiKey(
       Brevo.TransactionalEmailsApiApiKeys.apiKey,
-      process.env.EMAIL_PASS
+      String(process.env.EMAIL_PASS)
     );
 
     await apiInstance.sendTransacEmail({
       sender: {
-        email: "junaidsk4901@gmail.com", // verified sender
+        email: "junaidsk4901@gmail.com",
         name: "Hospitality App",
       },
       to: [{ email: to }],
@@ -21,7 +21,10 @@ export const sendEmail = async ({ to, subject, html }) => {
       htmlContent: html,
     });
   } catch (error) {
-    console.error("SEND EMAIL ERROR 👉", error.response?.data || error);
+    console.error(
+      "SEND EMAIL ERROR 👉",
+      error?.response?.body || error
+    );
     throw error;
   }
 };

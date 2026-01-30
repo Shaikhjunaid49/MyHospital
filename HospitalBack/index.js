@@ -14,6 +14,7 @@ import { limiter } from "./src/middlewares/rateLimiter.js";
 import { errorHandler } from "./src/middlewares/errorHandler.js";
 import logger from "./src/config/logger.js";
 import { corsOptions } from "./src/config/cors.js";
+import { sendEmail } from "./src/utils/sendEmail.js"; // email util
 
 // routes
 import authRoutes from "./src/routes/auth.routes.js";
@@ -51,9 +52,8 @@ if (process.env.NODE_ENV === "production") {
   app.use(morgan("dev"));
 }
 
-// trust proxy 
+// trust proxy (Render)
 app.set("trust proxy", 1);
-
 
 // rate limiting
 app.use(limiter);
@@ -64,6 +64,25 @@ app.use(express.json());
 /* ========= DATABASE ========= */
 
 connectDB();
+
+/* ========= TEST EMAIL (TEMP) ========= */
+// use this only to test Brevo email
+app.get("/test-email", async (req, res) => {
+  try {
+    await sendEmail({
+      to: "junaidsk4901@gmail.com",
+      subject: "Brevo Test Email",
+      html: "<h2>Email system working ✅</h2>",
+    });
+
+    res.json({ success: true, message: "Email sent successfully" });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
 
 /* ========= ROUTES ========= */
 
