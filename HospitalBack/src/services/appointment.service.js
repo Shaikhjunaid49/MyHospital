@@ -3,14 +3,12 @@ import User from "../models/User.js";
 import Room from "../models/call.js";
 import { AppError } from "../utils/AppError.js";
 
-/* ================= SLOT OVERLAP CHECK ================= */
-
 // Check if doctor already has an appointment in this time slot
-export const checkSlotOverlap = async (doctorId, start, end) => {
+export const checkSlotOverlap = async (doctorId, startDate, endDate) => {
   const overlap = await Appointment.findOne({
     doctorId,
-    start: { $lt: end },
-    end: { $gt: start },
+    start: { $lt: endDate },
+    end: { $gt: startDate },
   });
 
   if (overlap) {
@@ -18,11 +16,8 @@ export const checkSlotOverlap = async (doctorId, start, end) => {
   }
 };
 
-/* ================= DOCTOR AVAILABILITY ================= */
-
 // Check if doctor is available on given day and time
-export const checkDoctorAvailability = (doctor, start, end) => {
-  // Allow booking if availability is not configured
+export const checkDoctorAvailability = (doctor, startDate, endDate) => {
   if (
     !doctor.availability ||
     !Array.isArray(doctor.availability) ||
@@ -31,7 +26,7 @@ export const checkDoctorAvailability = (doctor, start, end) => {
     return true;
   }
 
-  const day = start.toLocaleString("en-US", { weekday: "long" });
+  const day = startDate.toLocaleString("en-US", { weekday: "long" });
 
   const dayAvailability = doctor.availability.find(
     (a) => a.day === day && Array.isArray(a.slots)
@@ -41,17 +36,15 @@ export const checkDoctorAvailability = (doctor, start, end) => {
     throw new AppError(`Doctor is not available on ${day}`, 400);
   }
 
-  const reqStart = start.getHours() * 60 + start.getMinutes();
-  const reqEnd = end.getHours() * 60 + end.getMinutes();
+  const reqStart = startDate.getHours() * 60 + startDate.getMinutes();
+  const reqEnd = endDate.getHours() * 60 + endDate.getMinutes();
 
   const isSlotValid = dayAvailability.slots.some((slot) => {
-    const slotStart =
-      parseInt(slot.start.split(":")[0]) * 60 +
-      parseInt(slot.start.split(":")[1]);
+    const [startHour, startMin] = slot.start.split(":").map(Number);
+    const [endHour, endMin] = slot.end.split(":").map(Number);
 
-    const slotEnd =
-      parseInt(slot.end.split(":")[0]) * 60 +
-      parseInt(slot.end.split(":")[1]);
+    const slotStart = startHour * 60 + startMin;
+    const slotEnd = endHour * 60 + endMin;
 
     return reqStart >= slotStart && reqEnd <= slotEnd;
   });
@@ -61,27 +54,6 @@ export const checkDoctorAvailability = (doctor, start, end) => {
   }
 };
 
-/* ================= STATUS FLOW VALIDATION ================= */
-
-// Validate appointment status transitions
-export const validateStatusFlow = (current, next) => {
-  const allowed = {
-    pending: ["confirmed", "canceled"],
-    confirmed: ["completed", "canceled"],
-    completed: [],
-    canceled: [],
-  };
-
-  if (!allowed[current]?.includes(next)) {
-    throw new AppError(
-      `Cannot change status from ${current} → ${next}`,
-      400
-    );
-  }
-};
-
-/* ================= MEETING ROOM ================= */
-
 // Create meeting room for appointment
 export const createMeetingRoom = async (doctorId, patientId) => {
   const room = await Room.create({
@@ -90,8 +62,6 @@ export const createMeetingRoom = async (doctorId, patientId) => {
 
   return room._id;
 };
-
-/* ================= CREATE APPOINTMENT ================= */
 
 // Main appointment creation logic
 export const createAppointmentService = async (data) => {
@@ -106,33 +76,40 @@ export const createAppointmentService = async (data) => {
     symptoms,
   } = data;
 
-  // Check doctor exists
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+
+  if (isNaN(startDate) || isNaN(endDate)) {
+    throw new AppError("Invalid date or time format", 400);
+  }
+
+  if (startDate >= endDate) {
+    throw new AppError("Invalid time slot", 400);
+  }
+
   const doctor = await User.findById(doctorId);
-  if (!doctor) {
+
+  if (!doctor || doctor.role !== "doctor") {
     throw new AppError("Doctor not found", 404);
   }
 
-  // Check slot overlap
-  await checkSlotOverlap(doctorId, start, end);
+  await checkSlotOverlap(doctorId, startDate, endDate);
 
-  // Check doctor availability
-  checkDoctorAvailability(doctor, new Date(start), new Date(end));
+  checkDoctorAvailability(doctor, startDate, endDate);
 
-  // Create meeting room
   const meetingRoomId = await createMeetingRoom(
     doctorId,
     patientId
   );
 
-  // Create appointment
   const appointment = await Appointment.create({
     patientId,
     doctorId,
     serviceId,
     department,
     consultationType,
-    start,
-    end,
+    start: startDate,
+    end: endDate,
     status: "pending",
     meetingRoomId,
     paymentStatus: "pending",
@@ -142,16 +119,31 @@ export const createAppointmentService = async (data) => {
   return appointment;
 };
 
-/* ================= UPDATE APPOINTMENT STATUS ================= */
+// Validate status transitions
+const validateStatusFlow = (current, next) => {
+  const allowed = {
+    pending: ["confirmed", "canceled"],
+    confirmed: ["completed", "canceled"],
+    completed: [],
+    canceled: [],
+  };
+
+  if (!allowed[current]?.includes(next)) {
+    throw new AppError(
+      `Cannot change status from ${current} to ${next}`,
+      400
+    );
+  }
+};
 
 // Update appointment status safely
 export const updateAppointmentStatusService = async (id, newStatus) => {
   const appointment = await Appointment.findById(id);
+
   if (!appointment) {
     throw new AppError("Appointment not found", 404);
   }
 
-  // Validate status transition
   validateStatusFlow(appointment.status, newStatus);
 
   appointment.status = newStatus;

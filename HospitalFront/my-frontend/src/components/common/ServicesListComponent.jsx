@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getServices } from "../../api/services";
+import { FaStethoscope } from "react-icons/fa";
 
 // Fetches services from backend
 const ServicesListComponent = () => {
@@ -11,16 +12,17 @@ const ServicesListComponent = () => {
     loadServices();
   }, []);
 
+  // load services from backend
   const loadServices = async () => {
     try {
       const { data } = await getServices();
       setServices(data.services || []);
-    } catch {
+    } catch (error) {
       alert("Failed to load services");
     }
   };
 
-  // random hospital offers
+  // hospital offers
   const offers = [
     "Free OPD Consultation on Mondays",
     "20% off on Dental Checkup",
@@ -30,35 +32,48 @@ const ServicesListComponent = () => {
   ];
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6">
+    <div className="p-6 max-w-7xl mx-auto">
+
+      {/* heading */}
+      <h2 className="text-3xl font-bold mb-8">
         Available Services
       </h2>
 
-      {/* services list */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* services grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {services.map((s) => (
           <div
             key={s._id}
-            className="border rounded-xl p-5 shadow bg-white"
+            className="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-6"
           >
-            <h3 className="font-semibold text-lg">
+            {/* top icon */}
+            <div className="w-14 h-14 flex items-center justify-center 
+                            bg-green-50 text-green-600 rounded-full text-xl">
+              <FaStethoscope />
+            </div>
+
+            {/* service name */}
+            <h3 className="font-semibold text-lg mt-4">
               {s.name}
             </h3>
 
-            <p className="text-gray-600 text-sm mt-2">
+            {/* description */}
+            <p className="text-gray-600 text-sm mt-2 line-clamp-3">
               {s.description}
             </p>
 
-            <p className="font-bold mt-3">
+            {/* price */}
+            <p className="font-bold text-green-700 mt-4 text-lg">
               ₹ {s.price}
             </p>
 
+            {/* book button */}
             <button
               onClick={() =>
                 navigate(`/appointment?serviceId=${s._id}`)
               }
-              className="mt-4 w-full bg-green-600 text-white py-2 rounded"
+              className="mt-5 w-full bg-green-600 hover:bg-green-700 
+                         text-white py-2 rounded-lg transition"
             >
               Book Appointment
             </button>
@@ -66,23 +81,25 @@ const ServicesListComponent = () => {
         ))}
       </div>
 
-      {/* hospital offers */}
-      <div className="mt-12">
-        <h3 className="text-xl font-bold mb-4 text-green-700">
+      {/* hospital offers section */}
+      <div className="mt-16">
+        <h3 className="text-2xl font-bold mb-6 text-green-700">
           Hospital Offers
         </h3>
 
-        <ul className="grid md:grid-cols-2 gap-4">
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
           {offers.map((offer, index) => (
-            <li
+            <div
               key={index}
-              className="bg-green-50 border border-green-200 p-4 rounded-lg"
+              className="bg-green-50 border border-green-200 
+                         p-5 rounded-xl shadow-sm"
             >
               {offer}
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       </div>
+
     </div>
   );
 };

@@ -5,41 +5,43 @@ import API from "../../api/axios";
 const AppointmentComponent = () => {
   const navigate = useNavigate();
 
+  // step number (1 to 4)
+  const [step, setStep] = useState(1);
+
+  // store services and doctors
   const [services, setServices] = useState([]);
   const [doctors, setDoctors] = useState([]);
-  const [showForm, setShowForm] = useState(false);
-  const [selectedService, setSelectedService] = useState(null);
 
+  // loading state
+  const [loading, setLoading] = useState(false);
+
+  // form data
   const [form, setForm] = useState({
-    date: "",
-    doctorId: "",
     serviceId: "",
+    doctorId: "",
+    date: "",
     timeSlot: "",
   });
 
-  // Fetch services and doctors from database
+  // get auth from localStorage
+  const auth = JSON.parse(localStorage.getItem("auth"));
+
+  // get services and doctors from backend
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Get services
         const servicesRes = await API.get("/services");
 
-        // Ensure services is always an array
+        // check if response is array
         const servicesData = Array.isArray(servicesRes.data)
           ? servicesRes.data
           : servicesRes.data.services || [];
 
         setServices(servicesData);
 
-        // Get doctors
         const doctorsRes = await API.get("/users/doctors");
-
-       const doctorsData = doctorsRes.data.data || [];
-
-        setDoctors(doctorsData);
-
+        setDoctors(doctorsRes.data.data || []);
       } catch (error) {
-        console.error(error);
         alert("Failed to load data");
       }
     };
@@ -47,32 +49,21 @@ const AppointmentComponent = () => {
     fetchData();
   }, []);
 
-  // Build start and end time
+  // create start and end time (30 min slot)
   const buildStartEnd = (date, timeSlot) => {
-    const start = new Date(`${date} ${timeSlot}`);
+    const start = new Date(`${date}T${timeSlot}:00`);
     const end = new Date(start.getTime() + 30 * 60 * 1000);
     return { start, end };
   };
 
-  // When user clicks Book button
-  const handleBookClick = (service) => {
-    setSelectedService(service);
-    setForm({
-      ...form,
-      serviceId: service._id,
-    });
-    setShowForm(true);
-  };
-
-  // Book appointment
+  // book appointment
   const bookAppointment = async () => {
-    if (!form.date || !form.doctorId || !form.timeSlot) {
-      alert("Please fill all fields");
-      return;
+    // check if all fields filled
+    if (!form.serviceId || !form.doctorId || !form.date || !form.timeSlot) {
+      return alert("Please fill all fields");
     }
 
-    const auth = JSON.parse(localStorage.getItem("auth"));
-
+    // check login
     if (!auth || !auth.token) {
       alert("Please login first");
       navigate("/login");
@@ -82,6 +73,9 @@ const AppointmentComponent = () => {
     const { start, end } = buildStartEnd(form.date, form.timeSlot);
 
     try {
+      setLoading(true);
+
+      // send request to backend
       await API.post(
         "/appointments",
         {
@@ -97,56 +91,71 @@ const AppointmentComponent = () => {
         }
       );
 
-      alert("Appointment booked successfully");
-
-      navigate("/dashboard");
-
+      // go to done step
+      setStep(4);
     } catch (error) {
-      console.error(error);
-      alert(error.response?.data?.message || "Appointment failed");
+      alert(error.response?.data?.message || "Time slot not available");
+    } finally {
+      setLoading(false);
     }
   };
 
+  // UI
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-green-700">
-          Book an Appointment
-        </h1>
+    <div className="min-h-screen bg-gray-50 flex justify-center items-center p-6">
+      <div className="bg-white w-full max-w-lg p-8 rounded-xl shadow-lg">
 
-        {/* Show services */}
-        {!showForm && (
-          <div className="grid md:grid-cols-3 gap-6">
-            {services.map((service) => (
-              <div
-                key={service._id}
-                className="bg-white p-6 rounded-xl shadow"
-              >
-                <h3 className="text-lg font-semibold">
+        {/* step indicator */}
+        <div className="flex justify-between mb-6 text-sm font-semibold">
+          <span className={step >= 1 ? "text-green-600" : "text-gray-400"}>
+            Service
+          </span>
+          <span className={step >= 2 ? "text-green-600" : "text-gray-400"}>
+            Time
+          </span>
+          <span className={step >= 3 ? "text-green-600" : "text-gray-400"}>
+            Confirm
+          </span>
+          <span className={step === 4 ? "text-green-600" : "text-gray-400"}>
+            Done
+          </span>
+        </div>
+
+        {/* step 1 */}
+        {step === 1 && (
+          <>
+            <h2 className="text-xl font-bold mb-4">Select Service</h2>
+
+            <select
+              className="w-full border p-3 mb-4"
+              onChange={(e) =>
+                setForm({ ...form, serviceId: e.target.value })
+              }
+            >
+              <option value="">Choose Service</option>
+              {services.map((service) => (
+                <option key={service._id} value={service._id}>
                   {service.title || service.name}
-                </h3>
+                </option>
+              ))}
+            </select>
 
-                <p className="text-gray-500 mb-4">
-                  ₹{service.price}
-                </p>
-
-                <button
-                  onClick={() => handleBookClick(service)}
-                  className="w-full bg-green-600 text-white py-2 rounded-lg"
-                >
-                  Book Appointment
-                </button>
-              </div>
-            ))}
-          </div>
+            <button
+              onClick={() => {
+                if (!form.serviceId) return alert("Select service");
+                setStep(2);
+              }}
+              className="w-full bg-green-600 text-white py-3 rounded-lg"
+            >
+              Next
+            </button>
+          </>
         )}
 
-        {/* Booking form */}
-        {showForm && (
-          <div className="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg">
-            <p className="mb-4">
-              Service: <b>{selectedService?.title || selectedService?.name}</b>
-            </p>
+        {/* step 2 */}
+        {step === 2 && (
+          <>
+            <h2 className="text-xl font-bold mb-4">Choose Date & Time</h2>
 
             <input
               type="date"
@@ -162,29 +171,73 @@ const AppointmentComponent = () => {
                 setForm({ ...form, doctorId: e.target.value })
               }
             >
-              <option value="">Choose doctor</option>
+              <option value="">Choose Doctor</option>
               {doctors.map((doc) => (
                 <option key={doc._id} value={doc._id}>
-                  {doc.name}
+                  {doc.name} ({doc.specialization})
                 </option>
               ))}
             </select>
 
             <input
-              placeholder="10:00"
+              type="time"
               className="w-full border p-3 mb-4"
               onChange={(e) =>
                 setForm({ ...form, timeSlot: e.target.value })
               }
             />
 
+            <div className="flex justify-between">
+              <button onClick={() => setStep(1)}>Back</button>
+              <button
+                onClick={() => {
+                  if (!form.date || !form.doctorId || !form.timeSlot)
+                    return alert("Fill all fields");
+                  setStep(3);
+                }}
+                className="bg-green-600 text-white px-6 py-2 rounded"
+              >
+                Next
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* step 3 */}
+        {step === 3 && (
+          <>
+            <h2 className="text-xl font-bold mb-4">Confirm Appointment</h2>
+
+            <p><b>Date:</b> {form.date}</p>
+            <p><b>Time:</b> {form.timeSlot}</p>
+
+            <div className="flex justify-between mt-6">
+              <button onClick={() => setStep(2)}>Back</button>
+              <button
+                onClick={bookAppointment}
+                disabled={loading}
+                className="bg-green-600 text-white px-6 py-2 rounded"
+              >
+                {loading ? "Booking..." : "Confirm"}
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* step 4 */}
+        {step === 4 && (
+          <>
+            <h2 className="text-xl font-bold text-green-600 mb-4">
+              Appointment Booked Successfully 🎉
+            </h2>
+
             <button
-              onClick={bookAppointment}
+              onClick={() => navigate("/dashboard")}
               className="w-full bg-green-600 text-white py-3 rounded-lg"
             >
-              Confirm Booking
+              Go to Dashboard
             </button>
-          </div>
+          </>
         )}
       </div>
     </div>

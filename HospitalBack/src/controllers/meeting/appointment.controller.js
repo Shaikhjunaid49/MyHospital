@@ -13,12 +13,13 @@ export const createAppointment = async (req, res, next) => {
   try {
     const data = {
       ...req.body,
-      patientId: req.user._id, // logged-in patient
+      patientId: req.user._id,
     };
 
     const appointment = await createAppointmentService(data);
 
     res.status(201).json({
+      status: "success",
       message: "Appointment created successfully",
       appointment,
     });
@@ -37,7 +38,11 @@ export const getAllAppointments = async (req, res, next) => {
       .populate("serviceId", "title price")
       .sort({ start: -1 });
 
-    res.json(data);
+    res.json({
+      status: "success",
+      results: data.length,
+      data,
+    });
   } catch (error) {
     next(error);
   }
@@ -53,7 +58,11 @@ export const getDoctorAppointments = async (req, res, next) => {
       .populate("serviceId", "title price")
       .sort({ start: 1 });
 
-    res.json(data);
+    res.json({
+      status: "success",
+      results: data.length,
+      data,
+    });
   } catch (error) {
     next(error);
   }
@@ -71,7 +80,10 @@ export const getAppointmentById = async (req, res, next) => {
       throw new AppError("Appointment not found", 404);
     }
 
-    res.json(appointment);
+    res.json({
+      status: "success",
+      appointment,
+    });
   } catch (error) {
     next(error);
   }
@@ -103,6 +115,7 @@ export const updateAppointment = async (req, res, next) => {
     }
 
     res.json({
+      status: "success",
       message: "Status updated successfully",
       updated,
     });
