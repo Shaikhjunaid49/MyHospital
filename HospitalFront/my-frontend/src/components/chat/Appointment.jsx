@@ -34,10 +34,7 @@ const AppointmentComponent = () => {
         // Get doctors
         const doctorsRes = await API.get("/users/doctors");
 
-        // Ensure doctors is always an array
-        const doctorsData = Array.isArray(doctorsRes.data)
-          ? doctorsRes.data
-          : [];
+       const doctorsData = doctorsRes.data.data || [];
 
         setDoctors(doctorsData);
 
