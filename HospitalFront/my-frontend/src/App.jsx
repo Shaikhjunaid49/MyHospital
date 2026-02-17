@@ -1,28 +1,23 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "./index.css";
 
-// AUTH PAGES
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import Unauthorized from "./pages/auth/Unauthorized";
 
-// COMMON
 import ProtectedRoute from "./components/common/ProtectedRoute";
 
-// USER PAGES
 import Home from "./pages/user/Home";
 import Services from "./pages/user/Services";
-import About from "./pages/user/About"
+import About from "./pages/user/About";
 import UserDashboard from "./pages/user/UserDashboard";
 import Profile from "./pages/user/Profile";
 import DoctorDashboard from "./pages/user/DoctorDashboard";
 
-// ADMIN
 import AdminDashboard from "./pages/admin/AdminDashboard";
 
-// MEETING / GENERAL
 import Appointment from "./pages/meeting/Appointment";
 import Payment from "./pages/meeting/Payment";
 import VideoCall from "./pages/meeting/VideoCall";
@@ -33,10 +28,19 @@ export default function App() {
     <BrowserRouter>
       <Routes>
 
-        {/* PUBLIC ROUTES */}
+        {/* Public routes */}
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
-        <Route path="/services" element={<Services />} />
+
+        {/* Services now protected for logged-in user */}
+        <Route
+          path="/services"
+          element={
+            <ProtectedRoute role="user">
+              <Services />
+            </ProtectedRoute>
+          }
+        />
 
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
@@ -44,7 +48,7 @@ export default function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
 
-        {/* USER ROUTES */}
+        {/* User dashboard */}
         <Route
           path="/dashboard"
           element={
@@ -63,7 +67,7 @@ export default function App() {
           }
         />
 
-        {/* GENERAL (LOGGED IN USERS) */}
+        {/* General logged-in routes */}
         <Route
           path="/appointment"
           element={
@@ -100,7 +104,7 @@ export default function App() {
           }
         />
 
-        {/* ADMIN */}
+        {/* Admin */}
         <Route
           path="/admin"
           element={<Navigate to="/admin/dashboard" replace />}
@@ -115,7 +119,7 @@ export default function App() {
           }
         />
 
-        {/* DOCTOR */}
+        {/* Doctor */}
         <Route
           path="/doctor"
           element={

@@ -5,7 +5,8 @@ import API from "../../api/axios";
 const AppointmentComponent = () => {
   const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(true);
+  const [services, setServices] = useState([]);
+  const [doctors, setDoctors] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
 
@@ -16,79 +17,80 @@ const AppointmentComponent = () => {
     timeSlot: "",
   });
 
+  // Fetch services and doctors from database
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const servicesRes = await API.get("/services");
+        setServices(servicesRes.data);
+
+        const doctorsRes = await API.get("/users/doctors");
+        setDoctors(doctorsRes.data);
+
+      } catch (error) {
+        console.error(error);
+        alert("Failed to load data");
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Build start and end time
   const buildStartEnd = (date, timeSlot) => {
     const start = new Date(`${date} ${timeSlot}`);
     const end = new Date(start.getTime() + 30 * 60 * 1000);
     return { start, end };
   };
 
-  const treatments = [
-    { _id: "6948036d87e94984ab24496a", title: "General Checkup", price: 500 },
-    { _id: "6948036d87e94984ab24496b", title: "Dental Checkup", price: 800 },
-    { _id: "6948036d87e94984ab24496c", title: "Eye Checkup", price: 600 },
-  ];
-
-  const doctors = [
-    { _id: "6949632cb3d0503fa079d035", name: "Dr. Ayesha Khan" },
-    { _id: "6942a11449434c0cf2d63d1e", name: "Dr. Zain" },
-    { _id: "6942a13c49434c0cf2d63d20", name: "Dr. Patel" },
-  ];
-
-  useEffect(() => {
-    setLoading(false);
-  }, []);
-
+  // When user clicks Book button
   const handleBookClick = (service) => {
     setSelectedService(service);
     setForm({ ...form, serviceId: service._id });
     setShowForm(true);
   };
 
+  // Book appointment
   const bookAppointment = async () => {
-  if (!form.date || !form.doctorId || !form.timeSlot) {
-    alert("Please fill all fields");
-    return;
-  }
+    if (!form.date || !form.doctorId || !form.timeSlot) {
+      alert("Please fill all fields");
+      return;
+    }
 
-  // get auth from localStorage
-  const auth = JSON.parse(localStorage.getItem("auth"));
+    const auth = JSON.parse(localStorage.getItem("auth"));
 
-  // user must be logged in
-  if (!auth || !auth.token) {
-    alert("Please login first");
-    navigate("/login");
-    return;
-  }
+    if (!auth || !auth.token) {
+      alert("Please login first");
+      navigate("/login");
+      return;
+    }
 
-  const { start, end } = buildStartEnd(form.date, form.timeSlot);
+    const { start, end } = buildStartEnd(form.date, form.timeSlot);
 
-  try {
-    const res = await API.post(
-      "/appointments",
-      {
-        doctorId: form.doctorId,
-        serviceId: form.serviceId,
-        start,
-        end,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${auth.token}`,
+    try {
+      await API.post(
+        "/appointments",
+        {
+          doctorId: form.doctorId,
+          serviceId: form.serviceId,
+          start,
+          end,
         },
-      }
-    );
+        {
+          headers: {
+            Authorization: `Bearer ${auth.token}`,
+          },
+        }
+      );
 
-    const appointmentId = res.data.appointment._id;
-    const amount = selectedService.price;
+      alert("Appointment booked successfully");
 
-    navigate(`/payment?appointmentId=${appointmentId}&amount=${amount}`, {
-      state: { appointmentId, amount },
-    });
-  } catch (error) {
-    console.error(error.response?.data);
-    alert(error.response?.data?.message || "Appointment failed");
-  }
-};
+      navigate("/dashboard");
+
+    } catch (error) {
+      alert(error.response?.data?.message || "Appointment failed");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -97,14 +99,21 @@ const AppointmentComponent = () => {
           Book an Appointment
         </h1>
 
+        {/* Show services */}
         {!showForm && (
           <div className="grid md:grid-cols-3 gap-6">
-            {treatments.map((t) => (
-              <div key={t._id} className="bg-white p-6 rounded-xl shadow">
-                <h3 className="text-lg font-semibold">{t.title}</h3>
-                <p className="text-gray-500 mb-4">₹{t.price}</p>
+            {services.map((service) => (
+              <div key={service._id} className="bg-white p-6 rounded-xl shadow">
+                <h3 className="text-lg font-semibold">
+                  {service.title}
+                </h3>
+
+                <p className="text-gray-500 mb-4">
+                  ₹{service.price}
+                </p>
+
                 <button
-                  onClick={() => handleBookClick(t)}
+                  onClick={() => handleBookClick(service)}
                   className="w-full bg-green-600 text-white py-2 rounded-lg"
                 >
                   Book Appointment
@@ -114,6 +123,7 @@ const AppointmentComponent = () => {
           </div>
         )}
 
+        {/* Booking form */}
         {showForm && (
           <div className="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg">
             <p className="mb-4">
@@ -123,7 +133,9 @@ const AppointmentComponent = () => {
             <input
               type="date"
               className="w-full border p-3 mb-3"
-              onChange={(e) => setForm({ ...form, date: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, date: e.target.value })
+              }
             />
 
             <select
@@ -133,9 +145,9 @@ const AppointmentComponent = () => {
               }
             >
               <option value="">Choose doctor</option>
-              {doctors.map((d) => (
-                <option key={d._id} value={d._id}>
-                  {d.name}
+              {doctors.map((doc) => (
+                <option key={doc._id} value={doc._id}>
+                  {doc.name}
                 </option>
               ))}
             </select>
@@ -152,7 +164,7 @@ const AppointmentComponent = () => {
               onClick={bookAppointment}
               className="w-full bg-green-600 text-white py-3 rounded-lg"
             >
-              Confirm & Pay
+              Confirm Booking
             </button>
           </div>
         )}

@@ -8,14 +8,12 @@ import User from "../../models/User.js";
 import { AppError } from "../../utils/AppError.js";
 import { sendEmail } from "../../utils/sendEmail.js";
 
-/* ================= CREATE APPOINTMENT ================= */
-
-// Create a new appointment for logged-in patient
+// Create appointment
 export const createAppointment = async (req, res, next) => {
   try {
     const data = {
       ...req.body,
-      patientId: req.user._id,
+      patientId: req.user._id, // logged-in patient
     };
 
     const appointment = await createAppointmentService(data);
@@ -29,12 +27,12 @@ export const createAppointment = async (req, res, next) => {
   }
 };
 
-/* ================= GET APPOINTMENTS ================= */
-
-// Get all appointments for patient
+// Get patient appointments
 export const getAllAppointments = async (req, res, next) => {
   try {
-    const data = await Appointment.find({ patientId: req.user._id })
+    const data = await Appointment.find({
+      patientId: req.user._id,
+    })
       .populate("doctorId", "name email")
       .populate("serviceId", "title price")
       .sort({ start: -1 });
@@ -45,10 +43,12 @@ export const getAllAppointments = async (req, res, next) => {
   }
 };
 
-// Get all appointments for doctor
+// Get doctor appointments
 export const getDoctorAppointments = async (req, res, next) => {
   try {
-    const data = await Appointment.find({ doctorId: req.user._id })
+    const data = await Appointment.find({
+      doctorId: req.user._id,
+    })
       .populate("patientId", "name email")
       .populate("serviceId", "title price")
       .sort({ start: 1 });
@@ -59,7 +59,7 @@ export const getDoctorAppointments = async (req, res, next) => {
   }
 };
 
-// Get a single appointment by ID
+// Get single appointment
 export const getAppointmentById = async (req, res, next) => {
   try {
     const appointment = await Appointment.findById(req.params.id)
@@ -77,9 +77,7 @@ export const getAppointmentById = async (req, res, next) => {
   }
 };
 
-/* ================= UPDATE APPOINTMENT STATUS ================= */
-
-// Update appointment status (confirmed / canceled / completed)
+// Update appointment status
 export const updateAppointment = async (req, res, next) => {
   try {
     const updated = await updateAppointmentStatusService(
@@ -87,7 +85,7 @@ export const updateAppointment = async (req, res, next) => {
       req.body.status
     );
 
-    // Send confirmation email only when appointment is confirmed
+    // Send email when confirmed
     if (req.body.status === "confirmed") {
       const patient = await User.findById(updated.patientId);
       const doctor = await User.findById(updated.doctorId);
@@ -97,9 +95,9 @@ export const updateAppointment = async (req, res, next) => {
         subject: "Appointment Confirmed",
         html: `
           <h2>Appointment Confirmed</h2>
-          <p>Hello ${patient.name},</p>
-          <p>Your appointment with Dr. ${doctor.name} has been confirmed.</p>
-          <p><b>Date:</b> ${new Date(updated.start).toLocaleString()}</p>
+          <p>Hello ${patient.name}</p>
+          <p>Your appointment with Dr. ${doctor.name} is confirmed.</p>
+          <p>Date: ${new Date(updated.start).toLocaleString()}</p>
         `,
       });
     }

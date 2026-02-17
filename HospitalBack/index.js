@@ -24,6 +24,7 @@ import roomRoutes from "./src/routes/room.routes.js";
 import messageRoutes from "./src/routes/message.routes.js";
 import serviceRoutes from "./src/routes/service.routes.js";
 import paymentRoutes from "./src/routes/payment.routes.js";
+import userRoutes from "./src/routes/user.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -93,6 +94,7 @@ app.use("/api/rooms", roomRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/users", userRoutes);
 
 /* ========= HEALTH CHECK ========= */
 

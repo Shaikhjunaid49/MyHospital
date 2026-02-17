@@ -16,11 +16,20 @@ const LoginComponent = () => {
 
     try {
       const res = await API.post("/auth/login", form);
+
+      // Save token and user in context
       login(res.data.token, res.data.user);
 
-      if (res.data.user.role === "admin") navigate("/admin/dashboard");
-      else if (res.data.user.role === "doctor") navigate("/doctor");
-      else navigate("/dashboard");
+      // Redirect based on role
+      if (res.data.user.role === "admin") {
+        navigate("/admin/dashboard");
+      } else if (res.data.user.role === "doctor") {
+        navigate("/doctor");
+      } else {
+        // User goes to services first
+        navigate("/services");
+      }
+
     } catch (err) {
       alert(err.response?.data?.message || "Login failed");
     } finally {
@@ -41,7 +50,9 @@ const LoginComponent = () => {
           className="w-full border p-3 rounded mb-3"
           placeholder="Email"
           required
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
+          onChange={(e) =>
+            setForm({ ...form, email: e.target.value })
+          }
         />
 
         <input
@@ -49,7 +60,9 @@ const LoginComponent = () => {
           className="w-full border p-3 rounded mb-3"
           placeholder="Password"
           required
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
+          onChange={(e) =>
+            setForm({ ...form, password: e.target.value })
+          }
         />
 
         <button
