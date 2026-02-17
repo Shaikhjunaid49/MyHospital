@@ -27,7 +27,7 @@ const LoginComponent = () => {
         navigate("/doctor");
       } else {
         // User goes to services first
-        navigate("/services");
+        navigate("/appointment");
       }
 
     } catch (err) {

@@ -21,11 +21,25 @@ const AppointmentComponent = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Get services
         const servicesRes = await API.get("/services");
-        setServices(servicesRes.data);
 
+        // Ensure services is always an array
+        const servicesData = Array.isArray(servicesRes.data)
+          ? servicesRes.data
+          : servicesRes.data.services || [];
+
+        setServices(servicesData);
+
+        // Get doctors
         const doctorsRes = await API.get("/users/doctors");
-        setDoctors(doctorsRes.data);
+
+        // Ensure doctors is always an array
+        const doctorsData = Array.isArray(doctorsRes.data)
+          ? doctorsRes.data
+          : [];
+
+        setDoctors(doctorsData);
 
       } catch (error) {
         console.error(error);
@@ -46,7 +60,10 @@ const AppointmentComponent = () => {
   // When user clicks Book button
   const handleBookClick = (service) => {
     setSelectedService(service);
-    setForm({ ...form, serviceId: service._id });
+    setForm({
+      ...form,
+      serviceId: service._id,
+    });
     setShowForm(true);
   };
 
@@ -88,6 +105,7 @@ const AppointmentComponent = () => {
       navigate("/dashboard");
 
     } catch (error) {
+      console.error(error);
       alert(error.response?.data?.message || "Appointment failed");
     }
   };
@@ -103,9 +121,12 @@ const AppointmentComponent = () => {
         {!showForm && (
           <div className="grid md:grid-cols-3 gap-6">
             {services.map((service) => (
-              <div key={service._id} className="bg-white p-6 rounded-xl shadow">
+              <div
+                key={service._id}
+                className="bg-white p-6 rounded-xl shadow"
+              >
                 <h3 className="text-lg font-semibold">
-                  {service.title}
+                  {service.title || service.name}
                 </h3>
 
                 <p className="text-gray-500 mb-4">
@@ -127,7 +148,7 @@ const AppointmentComponent = () => {
         {showForm && (
           <div className="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg">
             <p className="mb-4">
-              Service: <b>{selectedService?.title}</b>
+              Service: <b>{selectedService?.title || selectedService?.name}</b>
             </p>
 
             <input
